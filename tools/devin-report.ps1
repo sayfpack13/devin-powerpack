@@ -156,6 +156,7 @@ Write-Host "`n[SUCCESS] Detailed report written to: $ReportFile" -ForegroundColo
 
 # 6. Append to EXPERIMENTS_LOG.md
 $reportFileName = [System.IO.Path]::GetFileName($ReportFile)
-$logEntry = "| [$DateSlug]($reportFileName) | $Timestamp | **$RunName** | `$Model` | **$profiledTime** · $profiledPeakMem | $chosenAngle | ``✅ VERIFIED`` |`n"
+$logEntry = "| [$DateSlug]($reportFileName) | $Timestamp | **$RunName** | ``$Model`` | **$profiledTime** · $profiledPeakMem | $chosenAngle | ``✅ VERIFIED`` |`n"
 Add-Content -Path $LogFile -Value $logEntry
 Write-Host "[SUCCESS] Entry appended to: $LogFile" -ForegroundColor Green
+
