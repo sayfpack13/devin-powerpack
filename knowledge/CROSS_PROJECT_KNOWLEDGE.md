@@ -16,8 +16,10 @@ This master knowledge base records battle-tested architectural patterns, proven 
 - [4. Caching & Expiration (`caching`)](#4-caching--expiration-caching) — Amortized $O(1)$ LRU with monotonic time
 - [5. Subagent Orchestration (`subagents`)](#5-subagent-orchestration-subagents) — When to spawn vs. when single-agent is superior
 - [6. Windows Environment & Shell Quirks (`windows`)](#6-windows-environment--shell-quirks-windows) — PowerShell escaping & terminal PATH caching
+- [7. Distributed Consensus & Raft (`consensus`)](#7-distributed-consensus--raft-consensus) — Deterministic discrete-event virtual clocks & partition healing
 
 ---
+
 
 ## 1. Database & Transactions (`transactions`)
 
@@ -144,6 +146,33 @@ class SlidingWindowLimiter:
 
 ---
 
+## 7. Distributed Consensus & Raft (`consensus`)
+
+### 🚫 The Trap (Anti-Pattern)
+- **Multi-Threaded Timing Flakiness**: Using OS threads with real `time.sleep()` to simulate Raft clusters. Operating system thread scheduling introduces non-deterministic test race conditions, test timeouts, and sporadic failures.
+- **Log Desynchronization on Heal**: Stale minority candidates disrupting healed leaders with higher terms unless term budgets and log-matching repair are strictly implemented.
+
+### ✅ The Battle-Tested Solution (Discrete-Event Virtual Clock Simulation)
+Use a **Deterministic Virtual Clock Loop** with injected seeded PRNG jitter and synchronous FIFO network delivery:
+
+```python
+class Cluster:
+    def __init__(self, size=5, seed=1):
+        self.now = 0
+        self.rng = random.Random(seed)
+        self.net = Network()
+        self.nodes = {i: Node(i, self) for i in range(size)}
+
+    def run(self, duration_ms):
+        end = self.now + duration_ms
+        while self.now < end:
+            self.tick()  # advances 1ms logical tick
+            self.net.deliver()  # drains FIFO network queue deterministically
+```
+- **Result**: 8 adversarial network partition, split-vote, and log convergence tests executed in **3.1 milliseconds** with 100% mathematical reproducibility.
+
+---
+
 *To add new lessons to this vault from any session, run:*
 ```bash
 devin-learn <category> <title> <root_cause> <solution>
@@ -152,17 +181,4 @@ devin-learn <category> <title> <root_cause> <solution>
 ```bash
 devin-remember <topic>
 ```
-
-
-### [2026-10-27 16:16:11] Raft Simulation & Network Partition Testing
-- **Category**: consensus
-- **Root Cause / Trap**: OS threads and real sleep introduce flaky test race conditions and slow execution
-- **Proven Solution**: Use a deterministic discrete-event virtual clock with seeded PRNG jitter; 8 adversarial partition tests run in 3.1ms with 100% reproducibility
-
-
-
-### [2026-10-27 16:16:13] Deterministic Raft simulation
-- **Category**: protocols
-- **Root Cause / Trap**: Threaded/timed Raft sims are flaky; log-matching treats same index+term as identical so fake divergent entries need a bogus term; higher-term RequestVote from stale minority disrupts the leader after heal (spec-correct, just budget re-election ticks)
-- **Proven Solution**: Discrete tick loop + injected seeded RNG per node + FIFO network queue drained per tick with instant RPC round-trips; partition drops at send AND delivery time; leader appends a no-op on election to anchor current-term commits
 
