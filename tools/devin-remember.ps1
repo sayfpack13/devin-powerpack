@@ -6,18 +6,35 @@ param(
     [string]$Topic = ""
 )
 
-$PowerPackRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
-$MasterKnowledgeFile = Join-Path $PowerPackRoot "knowledge\CROSS_PROJECT_KNOWLEDGE.md"
+# 1. Resolve PowerPack Root across any PC or clone location
+$PowerPackRoot = $null
+if ($env:DEVIN_POWERPACK_ROOT -and (Test-Path $env:DEVIN_POWERPACK_ROOT)) {
+    $PowerPackRoot = $env:DEVIN_POWERPACK_ROOT
+} elseif (Test-Path "$env:USERPROFILE\.devin\powerpack_root.txt") {
+    $stored = (Get-Content "$env:USERPROFILE\.devin\powerpack_root.txt" -Raw).Trim()
+    if (Test-Path $stored) { $PowerPackRoot = $stored }
+}
 
-if (-not (Test-Path $MasterKnowledgeFile)) {
-    # Fallback to APPDATA location
+if (-not $PowerPackRoot) {
+    $scriptParent = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+    if (Test-Path (Join-Path $scriptParent "knowledge\CROSS_PROJECT_KNOWLEDGE.md")) {
+        $PowerPackRoot = $scriptParent
+    }
+}
+
+$MasterKnowledgeFile = if ($PowerPackRoot) { Join-Path $PowerPackRoot "knowledge\CROSS_PROJECT_KNOWLEDGE.md" } else { $null }
+
+if (-not $MasterKnowledgeFile -or -not (Test-Path $MasterKnowledgeFile)) {
+    # Fallback to standard global roaming config
     $MasterKnowledgeFile = "$env:APPDATA\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md"
 }
 
 if (-not (Test-Path $MasterKnowledgeFile)) {
-    Write-Host "[ERROR] Master knowledge vault not found." -ForegroundColor Red
+    Write-Host "[ERROR] Master knowledge vault not found at '$MasterKnowledgeFile'." -ForegroundColor Red
+    Write-Host "Please clone devin-powerpack and run install.bat." -ForegroundColor Yellow
     exit 1
 }
+
 
 $content = Get-Content -Path $MasterKnowledgeFile -Raw
 

@@ -54,21 +54,50 @@ C:\Users\sayfp\devin-powerpack\
 
 ---
 
-## 🚀 Installation & Update Resilience
+## 🚀 Installation & Multi-PC Synchronization
 
-Devin frequently updates its internal binaries in `%LOCALAPPDATA%\Programs\Devin`. Because this PowerPack lives in a dedicated persistent folder (`C:\Users\sayfp\devin-powerpack`), **your configurations and tools will never be wiped by Devin updates.**
+Devin frequently updates its internal binaries in `%LOCALAPPDATA%\Programs\Devin`. Because this PowerPack lives in an update-proof independent git repository, **your configurations, custom subagents, tools, and compounding knowledge are update-proof and can be cloned onto any machine.**
 
-### Running the Installer
-Double-click `install.bat` (or execute via PowerShell):
+### Setting Up on a New PC
+On any new machine with Devin Desktop or CLI installed:
 ```powershell
-powershell -ExecutionPolicy Bypass -File C:\Users\sayfp\devin-powerpack\install.ps1
+# 1. Clone your PowerPack repository
+git clone https://github.com/sayfpack13/devin-powerpack.git
+cd devin-powerpack
+
+# 2. Run the 1-click installer
+.\install.bat
 ```
+`install.bat` automatically:
+- Registers the clone location dynamically into `DEVIN_POWERPACK_ROOT` and `%USERPROFILE%\.devin\powerpack_root.txt`.
+- Mirrors all custom subagents, rules, MCP servers, and the **Cross-Project Knowledge Vault** to that PC's active Devin roaming directories.
+- Adds CLI tools (`devin-run`, `devin-bench`, `devin-learn`, `devin-remember`, `devin-checkpoint`, `devin-verify`) to the User PATH and native Devin binary folders.
 
 ---
 
 ## 🛠️ How to Use with SWE 2.0
 
-### 1. Using Custom Subagents in Chat
+### 1. Cross-Project Knowledge Vault (`devin-remember`)
+Any Devin chat session (in any project workspace) can query proven patterns and traps:
+```bash
+# View all available engineering topics:
+devin-remember
+
+# Query a specific topic:
+devin-remember transactions
+devin-remember protocols
+devin-remember concurrency
+devin-remember caching
+```
+
+### 2. Compounding Reflexion Memory (`devin-learn`)
+Whenever a tricky problem or library trap is solved, index it permanently:
+```bash
+devin-learn "auth" "JWT Expiration Race Condition" "Token refreshed after socket closed" "Ensure refresh completes before triggering socket reconnect"
+```
+The lesson is automatically saved to `<your-clone>/knowledge/CROSS_PROJECT_KNOWLEDGE.md` and synced to `%APPDATA%`, so a simple `git commit && git push` permanently preserves it on GitHub for all your machines.
+
+### 3. Using Custom Subagents in Chat
 In Devin Desktop or CLI, you can directly invoke the specialized workers:
 - *"Think through this tough problem from first principles using the **architect** subagent to find the shortest, cleanest angle."*
 - *"Stress-test this login logic with edge cases using the **qa_tester** subagent."*
@@ -76,23 +105,17 @@ In Devin Desktop or CLI, you can directly invoke the specialized workers:
 - *"Reverse engineer the payload encryption in `client.bundle.js` using the **reverse_engineer** subagent."*
 - *"Review our latest edits against regressions using the **code_reviewer** subagent."*
 
-### 2. Micro-Benchmarking Algorithms
+### 4. Micro-Benchmarking Algorithms (`devin-bench`)
 To profile execution time and peak memory footprint:
 ```bash
 devin-bench path/to/script.py
 ```
 Outputs CPU execution time, heap/peak memory in KB, and total process lifetime.
 
-### 3. Compounding Reflexion Memory
-Whenever a tricky problem or library trap is solved, index it permanently:
-```bash
-devin-learn "auth" "JWT Expiration Race Condition" "Token refreshed after socket closed" "Ensure refresh completes before triggering socket reconnect"
-```
-Devin will automatically consult this lesson vault whenever working in that domain.
-
-### 4. Protecting Context During Heavy CLI Runs
+### 5. Protecting Context During Heavy CLI Runs (`devin-run`)
 ```bash
 devin-run npm test
 devin-run cargo build
 ```
 Outputs the top 35 and bottom 45 lines, saving the entire log to `.mythos/last_output.log`.
+

@@ -3,8 +3,9 @@ import shutil
 import struct
 import time
 
-powerpack_root = r"C:\Users\sayfp\devin-powerpack"
+powerpack_root = os.path.dirname(os.path.abspath(__file__))
 ws_root = os.path.join(powerpack_root, "workspaces")
+
 
 # Wipe old workspaces if needed and recreate clean
 if os.path.exists(ws_root):

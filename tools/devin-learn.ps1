@@ -17,9 +17,24 @@ param(
 )
 
 $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-$SafeCategory = $Category.ToLower().Replace(" ", "_")
-$PowerPackRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
-$MasterVault = Join-Path $PowerPackRoot "knowledge\CROSS_PROJECT_KNOWLEDGE.md"
+# 1. Resolve PowerPack Root dynamically on any machine
+$PowerPackRoot = $null
+if ($env:DEVIN_POWERPACK_ROOT -and (Test-Path $env:DEVIN_POWERPACK_ROOT)) {
+    $PowerPackRoot = $env:DEVIN_POWERPACK_ROOT
+} elseif (Test-Path "$env:USERPROFILE\.devin\powerpack_root.txt") {
+    $stored = (Get-Content "$env:USERPROFILE\.devin\powerpack_root.txt" -Raw).Trim()
+    if (Test-Path $stored) { $PowerPackRoot = $stored }
+}
+
+if (-not $PowerPackRoot) {
+    $scriptParent = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+    if (Test-Path (Join-Path $scriptParent "knowledge\CROSS_PROJECT_KNOWLEDGE.md")) {
+        $PowerPackRoot = $scriptParent
+    }
+}
+
+$MasterVault = if ($PowerPackRoot) { Join-Path $PowerPackRoot "knowledge\CROSS_PROJECT_KNOWLEDGE.md" } else { "$env:APPDATA\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md" }
+
 
 $LessonMarkdown = @"
 

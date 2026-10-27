@@ -29,6 +29,13 @@ foreach ($dir in $TargetDirs) {
     }
 }
 
+# 1b. Register Persistent PowerPack Clone Location on this PC
+[Environment]::SetEnvironmentVariable("DEVIN_POWERPACK_ROOT", $PowerPackRoot, "User")
+$env:DEVIN_POWERPACK_ROOT = $PowerPackRoot
+Set-Content -Path "$env:USERPROFILE\.devin\powerpack_root.txt" -Value $PowerPackRoot -Force
+Write-Host "  Registered PowerPack Root: $PowerPackRoot" -ForegroundColor Green
+
+
 # 2. Perform Backups of Existing Configs
 Write-Host "`n[1/5] Backing up existing configurations..." -ForegroundColor Yellow
 New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
