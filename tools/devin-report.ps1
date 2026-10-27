@@ -84,7 +84,7 @@ $badgeColor = if ($Model -match "Medium") { "blue" } else { "purple" }
 $ReportContent = @"
 # 🔬 Experiment Run: $RunName
 
-![Model](https://img.shields.io/badge/Model-$([System.Web.HttpUtility]::UrlEncode($Model))-$badgeColor)
+![Model](https://img.shields.io/badge/Model-$([System.Uri]::EscapeDataString($Model))-$badgeColor)
 ![Status](https://img.shields.io/badge/Status-Verified%20100%25-brightgreen)
 ![Directives](https://img.shields.io/badge/Directives-Mythos%20v3.0-orange)
 ![Timestamp](https://img.shields.io/badge/Tested-$DateSlug-lightgrey)

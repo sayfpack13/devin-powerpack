@@ -103,3 +103,5 @@ SWE-2 High:   [████████████████████] 166
 ---
 
 *Dashboard automatically updated via `devin-report`.*
+| [20261027_154339](RUN_20261027_154339_Challenge02_ProtocolReverser_Medium.md) | 2026-10-27 15:43:39 | **Challenge02_ProtocolReverser_Medium** | $Model | **0.256527s** · 5652.56 KB | - Trailer field is fixed sentinel 0xAA55 (no CRC variant matches); unpack accepts sentinel OR CRC16-CCITT, pack emits real CRC16. | `✅ VERIFIED` |
+
