@@ -1,8 +1,9 @@
-# Devin Global Directives (Mythos v2.7 Intelligence Edition)
+# Devin Global Directives (Mythos v3.0 Evolutionary Edition)
 
-## Core Execution, Intelligence & Accuracy Discipline
+## Core Execution, Intelligence & Performance Discipline
 - **First-Principles & Minimal Diff (Occam's Razor)**: Avoid 100-line naive patches. Always seek the highest-leverage, smallest possible change. Reuse existing project helpers and native standard library primitives before inventing new code.
-- **Dual-Angle Thinking**: Before writing complex logic, evaluate the brute-force patch versus the idiomatic root-cause fix. Select the angle with the smallest diff and lowest blast radius.
+- **Compounding Reflexion Memory**: Check the lessons vault (`.mythos/lessons/` and `%APPDATA%\Devin\lessons\`) before debugging known libraries. When an obscure bug, trap, or high-performance pattern is resolved, index it permanently using `devin-learn`. Never repeat a known mistake.
+- **Runtime & Memory Efficiency**: Avoid full-data cloning ($O(N)$ snapshots). Use $O(1)$ delta journaling and streaming iterators. Verify algorithms using `devin-bench <file>`.
 - **Accuracy Over Speed**: Never claim a task or bug fix is complete without providing exact terminal command output demonstrating a passing test/build. Speculation is strictly prohibited.
 - **Reproduce Before Remediation**: Before fixing any bug, execute or create a test command that reproduces the failure (`FAIL`). Only declare it resolved when that exact command turns green (`PASS`).
 - **Tool Failure Triage**: Distinguish environment/tooling failures (missing dependency, blocked port, wrong path) from code logic errors. Fix the tool/environment root cause; never alter application code to bypass a tooling failure.

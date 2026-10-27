@@ -134,9 +134,11 @@ Write-Host "`n==========================================================" -Foreg
 Write-Host "  SUCCESS! DEVIN SWE 2.0 POWERPACK SUCCESSFULLY INSTALLED " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Summary of enhancements activated:"
-Write-Host " - Mythos v2.5 Active (Bounded atomic slices, 262K hard limit, 3-strike circuit breaker)"
+Write-Host " - Mythos v3.0 Active (Evolutionary Performance, Reflexion Memory, Bounded Slices)"
 Write-Host " - Custom Subagents installed: 'architect', 'researcher', 'reverse_engineer', 'code_reviewer', 'qa_tester'"
 Write-Host " - Production MCP Servers configured: Context7 (live docs), Memory, Playwright"
 Write-Host " - Physical context protector enabled via 'devin-run <cmd>'"
+Write-Host " - Micro-benchmarker & Memory profiler enabled via 'devin-bench <file>'"
+Write-Host " - Compounding Reflexion memory enabled via 'devin-learn <category> <title> <cause> <fix>'"
 Write-Host " - 1-command checkpointing enabled via 'devin-checkpoint'"
 Write-Host "`nTo revert changes at any time, run uninstall.bat."
