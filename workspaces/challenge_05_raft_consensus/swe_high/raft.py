@@ -131,11 +131,11 @@ class Network:
         are delivered in the same pass (instant RPC round-trips per tick)."""
         while self._queue:
             dst, src, msg = self._queue.popleft()
-            if self.connected(src, dst):
+            if dst not in self.nodes or not self.connected(src, dst):
+                self.dropped_count += 1
+            else:
                 self.delivered_count += 1
                 self.nodes[dst].receive(msg, src)
-            else:
-                self.dropped_count += 1
 
 
 # --------------------------------------------------------------------------
