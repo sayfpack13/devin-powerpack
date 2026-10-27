@@ -1,0 +1,8 @@
+# Local backups and temporary state
+backups/
+.mythos/
+*.log
+*.tmp
+scratch_*.txt
+.DS_Store
+Thumbs.db
