@@ -1,20 +1,22 @@
 # Devin SWE 2.0 PowerPack
 
-A production-grade enhancement suite for **Devin SWE 2.0 (`swe-2-medium`)** that maximizes accuracy, automates debugging and verification, overcomes context-window exhaustion (262K limit), and prevents runaway trial-and-error loops.
+A production-grade enhancement suite for **Devin SWE 2.0 (`swe-2-medium`)** that bridges the intelligence and reasoning gap, maximizes accuracy, enforces Occam's Razor minimal-diff solutions, automates debugging and verification, and overcomes context-window exhaustion (262K limit).
 
 ---
 
-## ⚡ The Core Problem & The Fix
+## ⚡ Overcoming the SWE 2.0 Intelligence & Reasoning Gap
 
-| Symptom in Raw SWE 2.0 | Root Cause | PowerPack Solution |
+Smaller, specialized coding models like `swe-2-medium` struggle compared to frontier reasoning models because they gravitate toward **naive brute-force bloat** (writing 100-line complex workarounds instead of a 3-line idiomatic fix).
+
+| Frontier AI Advantage | Raw SWE 2.0 Failure | PowerPack Solution |
 | :--- | :--- | :--- |
-| **Premature "Done" / Fake Fixes** | Claims code is complete without runtime proof | **Zero-Speculation & Reproduction-First**: Strictly forbids saying "it works" without terminal command output. Requires running a failing test before fixing, and proving it passes after. |
-| **Tool / Environment Crashes** | Blames application code for tooling/port/permission errors | **Tool Failure Triage**: Distinguishes environment/tooling failures from code logic; fixes the tool/environment root cause instead of hacking code. |
-| **Blows past 262k context** | Dumps full 1,000+ line files and verbose terminal logs into prompt | **Surgical Context Hygiene & `devin-run`**: Forbids reading files >200 lines; automatically intercepts & truncates CLI outputs exceeding 80 lines into `.mythos/last_output.log`. |
-| **Forgets edits after 40 mins** | Relies on conversational memory which truncates or slips past 150k | **Git Truth & State Ledger (`.mythos/state.md`)**: Forces the agent to consult `git status -s` and a strict 100-line disk state ledger before every edit. |
-| **Infinite debugging spirals** | Tries random fixes 10 times in a row, breaking previously working code | **3-Strike Circuit Breaker**: Hard limit of 3 attempts. On strike 3, automatically reverts (`git checkout -- <file>`), logs root cause, and pivots. |
-| **Slow on Reverse Engineering** | Ingests huge disassemblies/minified bundles; re-learns obfuscated symbols | **Harness-First Protocol & Symbol Ledger**: Requires minimal test harnesses and symbol dictionary (`.mythos/re_symbols.md`) to map obfuscated tokens once. |
-| **Context Bloat during Research** | Orchestrator burns 80k tokens investigating 15 files | **Isolated Custom Subagents**: Spawns ephemeral workers (`researcher`, `qa_tester`, `reverse_engineer`) that burn tokens in their own sandbox and return a 10-line summary. |
+| **First-Principles Thinking** | Writes 100-line custom loops & reinvented helper functions | **Occam's Razor Mandate**: Forbids patches >30 lines without evaluating built-in standard library or framework primitives first. |
+| **Finding the Best Angle** | Grabs the first naive idea and brute-forces it | **Dual-Angle Thinking & `architect` Subagent**: Formulates Angle 1 (obvious patch) vs Angle 2 (high-leverage root-cause fix) and chooses the smallest diff. |
+| **Reusing Existing Levers** | Rewrites utilities that already exist in the repo | **Exploit Existing Primitives**: Mandates grepping `utils/`, `helpers/`, `lib/` before creating new helper code. |
+| **Root-Cause vs Symptom** | Monkey-patches errors with blanket try/catch or null checks | **Eliminate Root Cause**: Prohibits symptom-masking; traces where bad state enters the pipeline. |
+| **Premature "Done"** | Claims code is complete without runtime proof | **Zero-Speculation & Reproduction-First**: Mandates reproducible failing test before fix, and passing test with exit code 0 after. |
+| **Context Exhaustion** | Dumps 1,000+ line files into memory | **Surgical Context Hygiene & `devin-run`**: Strict ban on reading files >200 lines; auto-truncates noisy CLI logs. |
+| **Runaway Bug Loops** | Tries random edits 10+ times, breaking prior work | **3-Strike Circuit Breaker**: Hard limit of 3 attempts. On strike 3, automatically runs `git checkout -- <file>` to revert dirty state. |
 
 ---
 
@@ -23,10 +25,11 @@ A production-grade enhancement suite for **Devin SWE 2.0 (`swe-2-medium`)** that
 ```
 C:\Users\sayfp\devin-powerpack\
 ├── rules\
-│   ├── mythos_v2.md             # Hardened Mythos v2.6 (Accuracy & Automated Testing edition)
+│   ├── mythos_v2.md             # Hardened Mythos v2.7 (Intelligence & First-Principles edition)
 │   ├── reverse_engineering.md   # Guidelines for decompilation, binary & protocol reversing
 │   └── AGENTS.md                # Global always-on directives
 ├── agents\                      # Custom Subagent profiles (Devin CLI & Desktop)
+│   ├── architect.md             # First-principles problem solver & minimal-diff angle evaluator
 │   ├── researcher.md            # Read-only deep exploration & AST analysis
 │   ├── reverse_engineer.md      # Binary, protocol, and obfuscated code deconstruction
 │   ├── code_reviewer.md         # Fast regression and security verification before commits
@@ -58,7 +61,7 @@ powershell -ExecutionPolicy Bypass -File C:\Users\sayfp\devin-powerpack\install.
 The installer automatically:
 1. Creates a timestamped backup of your current rules and MCP settings in `backups/`.
 2. Syncs the rules to all active Devin directories (`%APPDATA%\Devin`, `%APPDATA%\devin`, `%LOCALAPPDATA%\devin`, `%USERPROFILE%\.devin`, `%USERPROFILE%\.config\devin`).
-3. Deploys custom subagents (`researcher`, `reverse_engineer`, `code_reviewer`, `qa_tester`).
+3. Deploys custom subagents (`architect`, `researcher`, `reverse_engineer`, `code_reviewer`, `qa_tester`).
 4. Configures production MCP servers (`context7`, `memory`, `playwright`).
 5. Adds `tools\` to your user `PATH` so you can call `devin-run` anywhere.
 
@@ -68,8 +71,8 @@ The installer automatically:
 
 ### 1. Using Custom Subagents in Chat
 In Devin Desktop or CLI, you can directly invoke the specialized workers:
+- *"Think through this tough problem from first principles using the **architect** subagent to find the shortest, cleanest angle."*
 - *"Stress-test this login logic with edge cases using the **qa_tester** subagent."*
-- *"Reproduce this timeout bug in a standalone script using the **qa_tester** subagent."*
 - *"Research how auth tokens are signed across the repo using the **researcher** subagent."*
 - *"Reverse engineer the payload encryption in `client.bundle.js` using the **reverse_engineer** subagent."*
 - *"Review our latest edits against regressions using the **code_reviewer** subagent."*

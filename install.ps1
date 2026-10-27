@@ -135,7 +135,7 @@ Write-Host "  SUCCESS! DEVIN SWE 2.0 POWERPACK SUCCESSFULLY INSTALLED " -Foregro
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Summary of enhancements activated:"
 Write-Host " - Mythos v2.5 Active (Bounded atomic slices, 262K hard limit, 3-strike circuit breaker)"
-Write-Host " - Custom Subagents installed: 'researcher', 'reverse_engineer', 'code_reviewer', 'qa_tester'"
+Write-Host " - Custom Subagents installed: 'architect', 'researcher', 'reverse_engineer', 'code_reviewer', 'qa_tester'"
 Write-Host " - Production MCP Servers configured: Context7 (live docs), Memory, Playwright"
 Write-Host " - Physical context protector enabled via 'devin-run <cmd>'"
 Write-Host " - 1-command checkpointing enabled via 'devin-checkpoint'"
