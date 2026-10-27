@@ -37,7 +37,7 @@ Write-Host "  Registered PowerPack Root: $PowerPackRoot" -ForegroundColor Green
 
 
 # 2. Perform Backups of Existing Configs
-Write-Host "`n[1/5] Backing up existing configurations..." -ForegroundColor Yellow
+Write-Host "`n[1/6] Backing up existing configurations..." -ForegroundColor Yellow
 New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
 
 $FilesToBackup = @(
@@ -62,7 +62,7 @@ foreach ($filePath in $FilesToBackup) {
 }
 
 # 3. Deploy Master Rules
-Write-Host "`n[2/5] Deploying Mythos v2.5 Hardened Rules..." -ForegroundColor Yellow
+Write-Host "`n[2/6] Deploying Mythos v3.0 Hardened Rules (SWE-2 Medium Optimized)..." -ForegroundColor Yellow
 $MythosSource = Join-Path $PowerPackRoot "rules\mythos_v2.md"
 $AgentsSource = Join-Path $PowerPackRoot "rules\AGENTS.md"
 
@@ -75,7 +75,7 @@ $RuleTargets = @(
 
 foreach ($target in $RuleTargets) {
     Copy-Item -Path $MythosSource -Destination $target -Force
-    Write-Host "  Installed Mythos v2.5 -> $target" -ForegroundColor Green
+    Write-Host "  Installed Mythos v3.0 -> $target" -ForegroundColor Green
 }
 
 $AgentsTargets = @(
@@ -90,7 +90,7 @@ foreach ($target in $AgentsTargets) {
 }
 
 # 4. Deploy Subagent Profiles
-Write-Host "`n[3/5] Deploying Custom Subagents (Researcher, Reverse Engineer, Code Reviewer)..." -ForegroundColor Yellow
+Write-Host "`n[3/6] Deploying Custom Subagents (Architect, Researcher, Reverse Engineer, Code Reviewer, QA Tester)..." -ForegroundColor Yellow
 $AgentsSourceDir = Join-Path $PowerPackRoot "agents"
 $AgentTargetDirs = @(
     "$env:APPDATA\Devin\agents",
@@ -183,14 +183,16 @@ Write-Host "`n==========================================================" -Foreg
 Write-Host "  SUCCESS! DEVIN SWE 2.0 POWERPACK SUCCESSFULLY INSTALLED " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Summary of enhancements activated:"
-Write-Host " - Mythos v3.0 Active (Evolutionary Performance, Cross-Project Knowledge, Bounded Slices)"
+Write-Host " - Mythos v3.0 Active (Evolutionary Performance, SWE-2 Medium Optimized)"
 Write-Host " - Cross-Project Knowledge Vault deployed ('CROSS_PROJECT_KNOWLEDGE.md')"
 Write-Host " - Fast Knowledge Query Tool active via 'devin-remember <topic>'"
+Write-Host " - Unified CLI Dispatcher active via 'devin <doctor|remember|bench|learn|sync>'"
 Write-Host " - Custom Subagents installed: 'architect', 'researcher', 'reverse_engineer', 'code_reviewer', 'qa_tester'"
 Write-Host " - Production MCP Servers configured: Context7 (live docs), Memory, Playwright"
 Write-Host " - Physical context protector enabled via 'devin-run <cmd>'"
 Write-Host " - Micro-benchmarker & Memory profiler enabled via 'devin-bench <file>'"
 Write-Host " - Compounding Reflexion memory enabled via 'devin-learn <category> <title> <cause> <fix>'"
 Write-Host " - 1-command checkpointing enabled via 'devin-checkpoint'"
+Write-Host " - Live health diagnostic verified via 'devin-verify'"
 Write-Host "`nTo revert changes at any time, run uninstall.bat."
 

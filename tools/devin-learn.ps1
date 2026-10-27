@@ -17,6 +17,7 @@ param(
 )
 
 $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$SafeCategory = if ($Category) { ($Category.Trim() -replace '[^a-zA-Z0-9_-]', '_').ToLower() } else { 'general' }
 # 1. Resolve PowerPack Root dynamically on any machine
 $PowerPackRoot = $null
 if ($env:DEVIN_POWERPACK_ROOT -and (Test-Path $env:DEVIN_POWERPACK_ROOT)) {

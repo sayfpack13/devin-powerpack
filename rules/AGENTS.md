@@ -2,8 +2,16 @@
 
 ## Core Execution, Intelligence & Performance Discipline
 - **First-Principles & Minimal Diff (Occam's Razor)**: Avoid 100-line naive patches. Always seek the highest-leverage, smallest possible change. Reuse existing project helpers and native standard library primitives before inventing new code.
-- **Cross-Project Compounding Knowledge**: Before writing complex algorithms or architectures (Protocols, Transactions, Caching, Concurrency, Rate Limiting), check the global knowledge vault using `devin-remember <topic>` or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. When an obscure bug, trap, or high-performance pattern is resolved in ANY session, index it permanently via `devin-learn <category> <title> <root_cause> <solution>`.
+- **Cross-Project Compounding Knowledge & Strict Quality Gate**:
+  - **Consult Before Coding**: Before designing complex algorithms or architectures (Protocols, Transactions, Caching, Concurrency, Rate Limiting, Consensus), check the global knowledge vault using `devin-remember <topic>` or inspect `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`.
+  - **Strict Gate for Indexing (`devin-learn`)**: DO NOT index routine, trivial, or one-off findings. Index a lesson ONLY if it passes the **3-Gate Significance Filter**:
+    1. *High Future Value*: Would this exact lesson save 30+ minutes or prevent a severe trap in a completely different, unrelated project?
+    2. *Non-Obvious Root Cause*: Was this an obscure library trap, race condition, hidden protocol quirk, or non-trivial performance/memory bottleneck ($O(N) \to O(1)$)?
+    3. *Battle-Tested & Proven*: Has the solution been physically verified with exit code 0 / passing tests?
+  - **Strict Rejections (NEVER INDEX)**: Trivial syntax errors, standard API usage easily found in docs, one-off project configuration/business logic, missing imports, simple test harness adjustments, or routine bug fixes.
+  - **Invocation**: When and ONLY when all 3 gates pass, execute: `devin-learn <category> <title> <root_cause> <solution>`.
 - **Compounding Reflexion Memory**: Check the lessons vault (`.mythos/lessons/` and `%APPDATA%\Devin\lessons\`) before debugging known libraries. Never repeat a known mistake.
+
 
 - **Runtime & Memory Efficiency**: Avoid full-data cloning ($O(N)$ snapshots). Use $O(1)$ delta journaling and streaming iterators. Verify algorithms using `devin-bench <file>`.
 - **Accuracy Over Speed**: Never claim a task or bug fix is complete without providing exact terminal command output demonstrating a passing test/build. Speculation is strictly prohibited.

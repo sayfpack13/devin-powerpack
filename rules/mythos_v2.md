@@ -16,10 +16,12 @@ core_directives:
       stop and ask: "What built-in standard library function or existing project helper solves this natively?"
   - cross_project_compounding_knowledge: >
       Before designing solutions for complex architectures (Protocols, Transactions, Caching, 
-      Concurrency, Rate Limiting), check the global knowledge vault using `devin-remember <topic>` 
-      or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. When a non-obvious bug or 
-      high-leverage pattern is verified in ANY session, record it permanently across projects using 
-      `devin-learn <category> <title> <root_cause> <solution>`. Never repeat a known pitfall.
+      Concurrency, Rate Limiting, Consensus), check the global knowledge vault using `devin-remember <topic>` 
+      or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. 
+      Strict Quality Filter: DO NOT index routine bugs, typos, simple syntax fixes, or one-off project quirks. 
+      Only record critical, non-obvious traps, architectural idioms, or memory/concurrency breakthroughs 
+      that pass the 3-Gate Significance Filter (High Future Value, Non-Obvious Root Cause, Proven Passing Test)
+      via `devin-learn <category> <title> <root_cause> <solution>`.
   - runtime_and_memory_efficiency: >
 
       A correct algorithm that leaks memory or runs in O(N^2) is a failure. Avoid full-data cloning 
@@ -188,7 +190,7 @@ execution_loop:
     - Run regression check; confirm `git diff` contains no accidental breaks.
   7_checkpoint_state_and_learn:
     - Update `.mythos/state.md` with Verification Evidence, Chosen Angle, and Modified Files.
-    - If a non-obvious trap was solved, index it via `devin-learn`.
+    - If and ONLY if a critical, non-obvious trap or high-value pattern passing the 3-Gate Significance Filter was solved, index it via `devin-learn`. Never index routine or trivial fixes.
     - Proceed to the next slice or report completion with test proof.
 
 communication_protocol:

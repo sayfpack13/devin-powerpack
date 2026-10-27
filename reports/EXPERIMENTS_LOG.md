@@ -86,9 +86,9 @@ SWE-2 High:   [██████████] 10 messages
 
 | Challenge / Task | Metric / Dimension | SWE-2 Medium (+ PowerPack) | SWE-2 High | Winner / Analysis |
 | :--- | :--- | :---: | :---: | :--- |
-| **Challenge 05: Raft Consensus** | **Status & Test Coverage** | **8 / 8 Tests Passing (3.1ms)** | In Progress | 🏆 **SWE-2 Medium** (First to complete) |
-| Challenge 05: Raft Consensus | **Architecture Picked** | **Deterministic Virtual Clock** | Pending | 🏆 **SWE-2 Medium** (Zero thread flakiness) |
-| Challenge 05: Raft Consensus | **Peak Memory Profile** | **1,354 KB** | Pending | 🏆 **SWE-2 Medium** (Ultra-compact footprint) |
+| **Challenge 05: Raft Consensus** | **Status & Test Coverage** | **8 / 8 Tests Passing (3.1ms)** | 12 / 12 Tests Passing (13ms) | 🏆 **SWE-2 Medium** (First to complete & 4x faster execution) |
+| Challenge 05: Raft Consensus | **Architecture Picked** | **Deterministic Virtual Clock** | Discrete Tick Loop + Seeded RNG | 🤝 **Both Deterministic** |
+| Challenge 05: Raft Consensus | **Peak Memory Profile** | **1,945 KB** | 3,405 KB | 🏆 **SWE-2 Medium** (42.8% Leaner RAM) |
 | **Challenge 04: KVStore Transactions** | **Architecture & Complexity** | **Layered Delta Stack + Tombstones** | $O(1)$ Undo Journaling Stack | 🤝 **Both $O(\text{delta})$ Optimal** |
 | Challenge 04: KVStore Transactions | **Test Suite Verification** | **16 / 16 Tests Passing (0.001s)** | 25 / 25 Tests Passing (0.062s) | 🤝 **Both 100% Green** |
 | Challenge 04: KVStore Transactions | **Peak RAM Profile** | **5,664 KB** | 5,672 KB | 🏆 **SWE-2 Medium** (Leaner memory) |
@@ -156,3 +156,5 @@ graph TD
 ---
 
 *Dashboard automatically updated via `devin-report`.*
+| [20261027_203652](RUN_20261027_203652_Challenge05_RaftConsensus_High.md) | 2026-10-27 20:36:52 | **Challenge05_RaftConsensus_High** | `SWE-2 High` | **0.116191s** · 3405.37 KB | Not documented | `✅ VERIFIED` |
+

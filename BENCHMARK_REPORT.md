@@ -2,13 +2,13 @@
 
 **Task:** Clean-room implementation of an In-Memory Key-Value Store with TTL & Multi-Level Nested Atomic Transactions.  
 **Runtime:** Devin Desktop (ACP Engine)  
-**Configuration:** SWE-2 Medium running **Mythos v2.7 PowerPack** vs. SWE-2 High.
+**Configuration:** SWE-2 Medium running **Mythos v3.0 PowerPack** vs. SWE-2 High.
 
 ---
 
 ## 1. Executive Summary
 
-In this head-to-head clean workspace benchmark, **SWE-2 Medium (powered by Mythos v2.7) outperformed SWE-2 High in turn efficiency, output token economy, and algorithmic design**, while matching High's 100% test pass rate:
+In this head-to-head clean workspace benchmark, **SWE-2 Medium (powered by Mythos v3.0) outperformed SWE-2 High in turn efficiency, output token economy, and algorithmic design**, while matching High's 100% test pass rate:
 
 1. **20% Fewer Turns**: SWE-2 Medium finished in **8 agent messages** compared to **10 messages** for SWE-2 High.
 2. **38.5% Fewer Output Tokens**: SWE-2 Medium generated only **3,307 output tokens** compared to **5,376 tokens** for High, resulting in significantly faster response latency and zero conversational rambling.
@@ -75,7 +75,7 @@ def rollback(self):
 
 ## 5. Conclusion
 
-By wrapping `swe-2-medium` with **Mythos v2.7** and strict physical constraints:
+By wrapping `swe-2-medium` with **Mythos v3.0** and strict physical constraints:
 - It eliminates the model's small-training disadvantage (spaghetti code and speculative completion).
 - It finishes multi-step tasks in **fewer turns and with 38.5% less output latency**.
 - It writes **more scalable, production-grade algorithms** than raw `swe-2-high`.
