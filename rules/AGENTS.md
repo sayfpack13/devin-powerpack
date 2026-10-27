@@ -2,7 +2,9 @@
 
 ## Core Execution, Intelligence & Performance Discipline
 - **First-Principles & Minimal Diff (Occam's Razor)**: Avoid 100-line naive patches. Always seek the highest-leverage, smallest possible change. Reuse existing project helpers and native standard library primitives before inventing new code.
-- **Compounding Reflexion Memory**: Check the lessons vault (`.mythos/lessons/` and `%APPDATA%\Devin\lessons\`) before debugging known libraries. When an obscure bug, trap, or high-performance pattern is resolved, index it permanently using `devin-learn`. Never repeat a known mistake.
+- **Cross-Project Compounding Knowledge**: Before writing complex algorithms or architectures (Protocols, Transactions, Caching, Concurrency, Rate Limiting), check the global knowledge vault using `devin-remember <topic>` or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. When an obscure bug, trap, or high-performance pattern is resolved in ANY session, index it permanently via `devin-learn <category> <title> <root_cause> <solution>`.
+- **Compounding Reflexion Memory**: Check the lessons vault (`.mythos/lessons/` and `%APPDATA%\Devin\lessons\`) before debugging known libraries. Never repeat a known mistake.
+
 - **Runtime & Memory Efficiency**: Avoid full-data cloning ($O(N)$ snapshots). Use $O(1)$ delta journaling and streaming iterators. Verify algorithms using `devin-bench <file>`.
 - **Accuracy Over Speed**: Never claim a task or bug fix is complete without providing exact terminal command output demonstrating a passing test/build. Speculation is strictly prohibited.
 - **Reproduce Before Remediation**: Before fixing any bug, execute or create a test command that reproduces the failure (`FAIL`). Only declare it resolved when that exact command turns green (`PASS`).

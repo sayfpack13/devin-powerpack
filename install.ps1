@@ -103,7 +103,7 @@ foreach ($targetDir in $AgentTargetDirs) {
 }
 
 # 5. Deploy MCP Configuration
-Write-Host "`n[4/5] Deploying MCP Configurations (Context7, Memory, Playwright)..." -ForegroundColor Yellow
+Write-Host "`n[4/6] Deploying MCP Configurations (Context7, Memory, Playwright)..." -ForegroundColor Yellow
 $McpSource = Join-Path $PowerPackRoot "mcp\mcp_config.json"
 $McpTargets = @(
     "$env:APPDATA\Devin\mcp_config.json",
@@ -117,8 +117,28 @@ foreach ($target in $McpTargets) {
     Write-Host "  MCP Config deployed -> $target" -ForegroundColor Green
 }
 
-# 6. Add Tools to User PATH
-Write-Host "`n[5/5] Configuring Tools in User PATH..." -ForegroundColor Yellow
+# 6. Deploy Cross-Project Knowledge Vault
+Write-Host "`n[5/6] Deploying Cross-Project Knowledge Vault..." -ForegroundColor Yellow
+$KnowledgeSource = Join-Path $PowerPackRoot "knowledge"
+$KnowledgeTargets = @(
+    "$env:APPDATA\Devin\knowledge",
+    "$env:APPDATA\devin\knowledge",
+    "$env:LOCALAPPDATA\devin\knowledge",
+    "$env:USERPROFILE\.devin\knowledge"
+)
+
+foreach ($targetDir in $KnowledgeTargets) {
+    if (-not (Test-Path $targetDir)) {
+        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    }
+    Get-ChildItem -Path $KnowledgeSource -Filter "*.md" | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $targetDir -Force
+    }
+    Write-Host "  Knowledge Vault mirrored -> $targetDir" -ForegroundColor Green
+}
+
+# 7. Configure Tools in PATH and Native Devin Binaries
+Write-Host "`n[6/6] Configuring Tools in User PATH & Native Devin Binaries..." -ForegroundColor Yellow
 $ToolsDir = Join-Path $PowerPackRoot "tools"
 $CurrentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($CurrentPath -notlike "*$ToolsDir*") {
@@ -130,11 +150,35 @@ if ($CurrentPath -notlike "*$ToolsDir*") {
     Write-Host "  Tools directory already in PATH." -ForegroundColor DarkGray
 }
 
+# Copy directly to Devin Desktop native bin directories for instant discovery without restart
+$DevinBinDirs = @(
+    "$env:LOCALAPPDATA\Programs\Devin\bin",
+    "$env:LOCALAPPDATA\devin\bin"
+)
+$cliVersions = Get-ChildItem -Path "$env:LOCALAPPDATA\devin\cli\_versions" -Directory -ErrorAction SilentlyContinue
+if ($cliVersions) {
+    foreach ($ver in $cliVersions) {
+        $binDir = Join-Path $ver.FullName "bin"
+        if (Test-Path $binDir) { $DevinBinDirs += $binDir }
+    }
+}
+
+foreach ($bin in $DevinBinDirs) {
+    if (Test-Path $bin) {
+        Get-ChildItem -Path $ToolsDir -File | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination $bin -Force
+        }
+        Write-Host "  Mirrored CLI tools to native bin -> $bin" -ForegroundColor Green
+    }
+}
+
 Write-Host "`n==========================================================" -ForegroundColor Cyan
 Write-Host "  SUCCESS! DEVIN SWE 2.0 POWERPACK SUCCESSFULLY INSTALLED " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Summary of enhancements activated:"
-Write-Host " - Mythos v3.0 Active (Evolutionary Performance, Reflexion Memory, Bounded Slices)"
+Write-Host " - Mythos v3.0 Active (Evolutionary Performance, Cross-Project Knowledge, Bounded Slices)"
+Write-Host " - Cross-Project Knowledge Vault deployed ('CROSS_PROJECT_KNOWLEDGE.md')"
+Write-Host " - Fast Knowledge Query Tool active via 'devin-remember <topic>'"
 Write-Host " - Custom Subagents installed: 'architect', 'researcher', 'reverse_engineer', 'code_reviewer', 'qa_tester'"
 Write-Host " - Production MCP Servers configured: Context7 (live docs), Memory, Playwright"
 Write-Host " - Physical context protector enabled via 'devin-run <cmd>'"
@@ -142,3 +186,4 @@ Write-Host " - Micro-benchmarker & Memory profiler enabled via 'devin-bench <fil
 Write-Host " - Compounding Reflexion memory enabled via 'devin-learn <category> <title> <cause> <fix>'"
 Write-Host " - 1-command checkpointing enabled via 'devin-checkpoint'"
 Write-Host "`nTo revert changes at any time, run uninstall.bat."
+

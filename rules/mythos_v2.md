@@ -14,11 +14,14 @@ core_directives:
       Small models fail when they write 100 lines of naive glue code instead of a 3-line 
       idiomatic fix. Always seek the highest-leverage minimal diff. If a patch exceeds 30 lines, 
       stop and ask: "What built-in standard library function or existing project helper solves this natively?"
-  - compounding_reflexion_memory: >
-      Never repeat a known pitfall. Before debugging complex libraries, check the lessons vault 
-      (`.mythos/lessons/` and `%APPDATA%\Devin\lessons\`). When a non-obvious bug or high-leverage 
-      pattern is verified, record it permanently using `devin-learn <category> <title> <root_cause> <solution>`.
+  - cross_project_compounding_knowledge: >
+      Before designing solutions for complex architectures (Protocols, Transactions, Caching, 
+      Concurrency, Rate Limiting), check the global knowledge vault using `devin-remember <topic>` 
+      or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. When a non-obvious bug or 
+      high-leverage pattern is verified in ANY session, record it permanently across projects using 
+      `devin-learn <category> <title> <root_cause> <solution>`. Never repeat a known pitfall.
   - runtime_and_memory_efficiency: >
+
       A correct algorithm that leaks memory or runs in O(N^2) is a failure. Avoid full-data cloning 
       (like naive dictionary snapshots); use O(1) delta journaling and streaming iterators. 
       Verify algorithms using `devin-bench <file>`.

@@ -47,8 +47,32 @@ foreach ($f in $targetFiles) {
     }
 }
 
+Write-Host "`n[6/6] Checking Cross-Project Knowledge Vault Sync..." -ForegroundColor Yellow
+$masterVaultHash = (Get-FileHash 'C:\Users\sayfp\devin-powerpack\knowledge\CROSS_PROJECT_KNOWLEDGE.md').Hash
+$vaultTargets = @(
+    'C:\Users\sayfp\AppData\Roaming\Devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md',
+    'C:\Users\sayfp\AppData\Roaming\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md',
+    'C:\Users\sayfp\AppData\Local\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md',
+    'C:\Users\sayfp\.devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md'
+)
+foreach ($vf in $vaultTargets) {
+    if (Test-Path $vf) {
+        $vh = (Get-FileHash $vf).Hash
+        if ($vh -eq $masterVaultHash) {
+            Write-Host "  [OK] $vf" -ForegroundColor Green
+        } else {
+            Write-Host "  [OUT OF SYNC] $vf" -ForegroundColor Red
+            $allSynced = $false
+        }
+    } else {
+        Write-Host "  [MISSING] $vf" -ForegroundColor Red
+        $allSynced = $false
+    }
+}
+
 if ($allSynced) {
-    Write-Host "`nALL SYSTEMS OPERATIONAL: Devin Desktop is 100% synced with PowerPack." -ForegroundColor Cyan
+    Write-Host "`nALL SYSTEMS OPERATIONAL: Devin Desktop & Knowledge Vault are 100% synced." -ForegroundColor Cyan
 } else {
     Write-Host "`nSome files are out of sync. Run install.bat to re-sync." -ForegroundColor Yellow
 }
+

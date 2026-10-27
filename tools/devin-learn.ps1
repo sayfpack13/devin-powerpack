@@ -1,5 +1,6 @@
 # Devin Reflexion & Compounding Memory Engine
-# Records a verified technical lesson, bug trap, or high-performance pattern across sessions.
+# Records a verified technical lesson, bug trap, or high-performance pattern permanently
+# into the cross-project knowledge vault and all active Devin profiles.
 
 param(
     [Parameter(Mandatory = $true, Position = 0)]
@@ -17,8 +18,10 @@ param(
 
 $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $SafeCategory = $Category.ToLower().Replace(" ", "_")
+$PowerPackRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+$MasterVault = Join-Path $PowerPackRoot "knowledge\CROSS_PROJECT_KNOWLEDGE.md"
 
-$LessonContent = @"
+$LessonMarkdown = @"
 
 ### [$Timestamp] $Title
 - **Category**: $Category
@@ -27,27 +30,51 @@ $LessonContent = @"
 
 "@
 
-$LessonDirs = @(
+# 1. Append to Central Master Knowledge Base
+if (Test-Path $MasterVault) {
+    Add-Content -Path $MasterVault -Value "`n$LessonMarkdown"
+}
+
+# 2. Append to Category File in knowledge/
+$KnowledgeDir = Join-Path $PowerPackRoot "knowledge"
+if (-not (Test-Path $KnowledgeDir)) {
+    New-Item -ItemType Directory -Path $KnowledgeDir -Force | Out-Null
+}
+$CategoryFile = Join-Path $KnowledgeDir "$SafeCategory.md"
+if (-not (Test-Path $CategoryFile)) {
+    Set-Content -Path $CategoryFile -Value "# Cross-Project Lessons: $Category`n"
+}
+Add-Content -Path $CategoryFile -Value $LessonMarkdown
+
+# 3. Propagate to all Devin global config directories
+$SyncDirs = @(
+    "$env:APPDATA\Devin\knowledge",
+    "$env:APPDATA\devin\knowledge",
+    "$env:USERPROFILE\.devin\knowledge",
     "$env:APPDATA\Devin\lessons",
     "$env:APPDATA\devin\lessons",
-    "$env:USERPROFILE\.devin\lessons",
     ".mythos\lessons"
 )
 
-foreach ($dir in $LessonDirs) {
+foreach ($dir in $SyncDirs) {
     if (-not (Test-Path $dir)) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
     }
     $targetFile = Join-Path $dir "$SafeCategory.md"
     if (-not (Test-Path $targetFile)) {
-        Set-Content -Path $targetFile -Value "# Lessons & Proven Patterns: $Category`n"
+        Set-Content -Path $targetFile -Value "# Lessons: $Category`n"
     }
-    Add-Content -Path $targetFile -Value $LessonContent
+    Add-Content -Path $targetFile -Value $LessonMarkdown
 }
 
+# Mirror Master Vault to APPDATA
+Copy-Item -Path $MasterVault -Destination "$env:APPDATA\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md" -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $MasterVault -Destination "$env:APPDATA\Devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md" -Force -ErrorAction SilentlyContinue
+
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "  DEVIN REFLEXION ENGINE - LESSON INDEXED PERMANENTLY     " -ForegroundColor Green
+Write-Host "  DEVIN KNOWLEDGE ENGINE - LESSON INDEXED CROSS-PROJECT   " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Category: $Category"
 Write-Host "Title:    $Title"
-Write-Host "Saved to global lessons vault for compounding intelligence across sessions."
+Write-Host "Vault:    $MasterVault"
+Write-Host "Lesson permanently available to all current and future Devin chat sessions."
