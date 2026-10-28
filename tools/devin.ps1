@@ -44,6 +44,10 @@ switch ($Command.ToLower()) {
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ToolsDir "devin-run.ps1") @RemainingArgs
         break
     }
+    { $_ -in @("wait", "poll") } {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ToolsDir "devin-wait.ps1") @RemainingArgs
+        break
+    }
     { $_ -in @("rules", "directives") } {
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $ToolsDir "devin-verify.ps1")
         break

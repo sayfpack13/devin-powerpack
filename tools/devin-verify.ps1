@@ -29,6 +29,7 @@ Write-Host "`n[2/6] Checking Custom Subagents in Devin Core..." -ForegroundColor
 $expectedAgents = @{
     "architect"        = "First-principles problem solver & minimal-diff angle evaluator"
     "code_reviewer"    = "Fast regression, security & quality gate verification"
+    "explorer"         = "Autonomous prototyping, rapid POC builder & dynamic API experimentation"
     "qa_tester"        = "Adversarial testing, edge-case validation & reproduction"
     "researcher"       = "Deep repository exploration & AST symbol analysis"
     "reverse_engineer" = "Binary, protocol, and obfuscated code deconstruction"

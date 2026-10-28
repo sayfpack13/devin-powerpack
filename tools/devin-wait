@@ -1,0 +1,2 @@
+#!/bin/sh
+cmd.exe /c "devin-wait.bat" "$@"
