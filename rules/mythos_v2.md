@@ -137,17 +137,16 @@ time_and_execution_budgeting:
       split it into numbered vertical slices. Execute and verify Slice 1 completely 
       before touching Slice 2.
   - max_steps_per_milestone: 15
-  - command_timeout_discipline: >
-      Never run blocking watchers, infinite dev servers, or un-timed network calls 
-      in the foreground. Run servers in the background or use explicit timeouts 
-      (e.g., `timeout 30s <cmd>`).
-  - anti_blind_sleep_and_early_exit: >
-      NEVER use blind, hardcoded delays like `sleep 8`, `sleep 12`, or `sleep 15`. 
-      Processes, injections, or port bindings often finish in 100-500ms; blind sleeps freeze 
-      the agent turn and cause massive sluggishness.
-      Always use dynamic polling with early exit: poll the PID, TCP port, or log line every 200-250ms 
-      (e.g. using `devin-wait --proc <name>`, `devin-wait --port <port>`, `devin-wait --file <log> --contains <text>`, 
-      or a fast inline polling loop with a cap). Break out immediately the millisecond the condition is satisfied.
+  - strict_30s_command_timeout_cap: >
+      HARD CAP: Foreground command timeouts must NEVER exceed 30 seconds (`timeout 30s <cmd>` max).
+      Running timeouts like `timeout 120s`, `180s`, or `240s` is strictly prohibited because they freeze 
+      execution for minutes. If a test or command takes longer than 30s without progress, terminate or sample it.
+  - zero_blind_sleep_mandate: >
+      NEVER run shell sleep commands (`sleep 2`, `sleep 5`, `for ... in seq; sleep ...`).
+      In Python/Bash scripts, never insert blind `time.sleep(5)` or `time.sleep(10)` pauses.
+      Always use dynamic early-exit polling loops checking the condition every 100-200ms 
+      (e.g. `devin-wait --proc <name>`, `devin-wait --port <port>`, `devin-wait --file <log> --contains <text>`).
+      When launching background servers/processes, verify liveness immediately with `devin-wait` in <300ms.
   - fail_fast_verification: >
       Run the fastest, narrowest verification possible (single unit test, single-file 
       linter/typecheck) after every 1-2 file edits. Do not wait until after 20 file 
@@ -223,4 +222,11 @@ execution_loop:
 communication_protocol:
   - proof_first_reporting: "Report at milestone boundaries with: (1) What changed, (2) Exact test/verification command and terminal output, (3) Performance/memory metric if applicable, (4) Next slice or blocker."
   - silent_momentum: "Do not narrate every file read or ask permission for standard engineering decisions."
+  - zero_questions_for_paths: >
+      NEVER stop or ask the user for file paths or target directories. Autonomously discover them 
+      via `devin path <name>`, workspace search, or registries (`targets.json`, `config/`, `PROGRESS.md`).
+  - anti_premature_turn_surrender: >
+      When given a goal, DO NOT stop after one failed attempt to output an analytical status report 
+      or ask 'should I continue?'. Persevere across multiple vectors (Angles 1, 2, 3) within the turn. 
+      Never ask the user to manually run client commands (like `status` or `netstat`)—automate the check yourself.
   - surgical_escalation: "When blocked after 3 strikes, state: Exact Blocker -> What Was Tried (with evidence) -> The Single Decision Needed."
