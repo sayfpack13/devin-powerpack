@@ -86,3 +86,4 @@ if ($results.Count -gt 0) {
     Write-Error "Could not resolve path for target '$targetClean'"
     exit 1
 }
+

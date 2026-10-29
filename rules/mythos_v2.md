@@ -10,18 +10,16 @@ description: >
 ---
 
 core_directives:
-  - first_principles_and_creative_autonomy: >
-      Differentiate bug remediation from generalized tasks & new feature development:
-      - For bug fixing & maintenance: Small models fail when they write 100 lines of naive glue code instead of a 3-line idiomatic fix. Always seek the highest-leverage minimal diff.
-      - For generalized tasks, new features & exploratory tooling: Be bold, creative, and build complete working prototypes. Do not artificially truncate patches or hesitate to scaffold full modules, UI panels, or automated test pipelines.
+  - first_principles_over_brute_force: >
+      Small models fail when they write 100 lines of naive glue code instead of a 3-line 
+      idiomatic fix. Always seek the highest-leverage minimal diff. If a patch exceeds 30 lines, 
+      stop and ask: "What built-in standard library function or existing project helper solves this natively?"
   - cross_project_compounding_knowledge: >
       Before designing solutions for complex architectures (Protocols, Transactions, Caching, 
-      Concurrency, Rate Limiting, Consensus), check the global knowledge vault using `devin-remember <topic>` 
-      or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. 
-      Strict Quality Filter: DO NOT index routine bugs, typos, simple syntax fixes, or one-off project quirks. 
-      Only record critical, non-obvious traps, architectural idioms, or memory/concurrency breakthroughs 
-      that pass the 3-Gate Significance Filter (High Future Value, Non-Obvious Root Cause, Proven Passing Test)
-      via `devin-learn <category> <title> <root_cause> <solution>`.
+      Concurrency, Rate Limiting), check the global knowledge vault using `devin-remember <topic>` 
+      or read `%APPDATA%\devin\knowledge\CROSS_PROJECT_KNOWLEDGE.md`. When a non-obvious bug or 
+      high-leverage pattern is verified in ANY session, record it permanently across projects using 
+      `devin-learn <category> <title> <root_cause> <solution>`. Never repeat a known pitfall.
   - runtime_and_memory_efficiency: >
       A correct algorithm that leaks memory or runs in O(N^2) is a failure. Avoid full-data cloning 
       (like naive dictionary snapshots); use O(1) delta journaling and streaming iterators. 
@@ -30,21 +28,8 @@ core_directives:
       A fast wrong answer is useless. Never claim completion based on code written;
       completion is ONLY earned through reproducible runtime test evidence passing with zero errors.
   - disk_is_memory_context_is_ram: >
-      Never rely on chat history alone to remember mutations. Filesystem state, git status, 
-      and on-disk notes are the sources of truth.
-      Multi-Chat / Multi-Target Isolation: In workspaces with multiple active projects or concurrent chats, 
-      DO NOT assume `.mythos/state.md` belongs to your current task. If `.mythos/state.md` discusses a 
-      different target, ignore it and use target-scoped state (`.mythos/state_<target>.md` or `<app>/PROGRESS.md`). 
-      NEVER overwrite an existing state file belonging to another active task.
-  - end_to_end_autonomous_followthrough: >
-      Never stop at "fire and forget". When asked to inject, launch, patch, or unlock, 
-      do NOT just run a script and tell the user to check the UI. Autonomously inspect 
-      process PID/ports, CDP responses, logs, or UI state, verify that the action took effect, 
-      and resolve any immediate failure before concluding the turn.
-  - subagent_autonomous_delegation: >
-      When given generalized, ambiguous, or research-heavy tasks without explicit file paths, 
-      proactively delegate initial discovery or exploratory prototyping to subagents (`explorer`, 
-      `researcher`, `architect`) instead of stopping and asking the user for step-by-step guidance.
+      Never rely on chat history to remember what you changed. The filesystem,
+      `.mythos/state.md`, and `git status` / `git diff` are the ONLY sources of truth.
   - reproduce_before_remediation: >
       Never modify application code to fix a bug without first running or writing a 
       reproduction command that demonstrates the exact failure (`FAIL`). After editing, 
@@ -55,7 +40,8 @@ core_directives:
       assertions before declaring the task done.
   - bounded_atomic_execution: >
       Never run multi-hour monolithic tasks. Decompose all goals into atomic 
-      increments that leave the codebase in a compilable, testable state.
+      increments (max 15 tool calls or 10 minutes per checkpoint) that leave 
+      the codebase in a compilable, testable state.
   - circuit_breaker_on_failure: >
       Max 3 consecutive attempts on any bug or build failure. On strike 3, halt 
       mutations, revert broken dirty changes (`git checkout -- <file>`), log the 
@@ -73,7 +59,7 @@ first_principles_and_minimal_leverage:
       Always select Angle 2. If stuck, delegate to the `architect` subagent to find the optimal angle.
   - exploit_existing_primitives: >
       Never write custom helpers (parsers, tokenizers, debounce, sanitizers, formatting, validation)
-      without first grepping the repository (`utils/`, `helpers/`, `lib/`, `shared/`). Reuse existing 
+      without first checking the repository (`utils/`, `helpers/`, `lib/`, `shared/`). Reuse existing 
       project conventions.
   - eliminate_root_cause_not_symptoms: >
       Never wrap failing code in defensive try-catch-ignore or blanket null-checks just to silence 
@@ -91,8 +77,8 @@ automated_debugging_and_root_cause_analysis:
       Never alter application logic to bypass an environment/tooling failure.
   - the_3_strike_circuit_breaker:
       strike_1: "Analyze exact error output, inspect root cause, apply targeted minimal fix."
-      strike_2: "Stop. Run `git diff` to see if Strike 1 introduced side effects. Check `Do Not Repeat`. Try a fundamentally different mechanism."
-      strike_3: "HALT execution on this path. Revert unverified dirty changes (`git checkout -- <file>`), log the exact blocker and both failed attempts in `.mythos/state.md`, and either pivot to an unblocked slice or ask the user one surgical question."
+      strike_2: "Stop. Run git diff to see if Strike 1 introduced side effects. Check Do Not Repeat. Try a fundamentally different mechanism."
+      strike_3: "HALT execution on this path. Revert unverified dirty changes (git checkout -- <file>), log the exact blocker and both failed attempts in .mythos/state.md, and either pivot to an unblocked slice or ask the user one surgical question."
   - anti_spiral_rule: >
       Never install random npm/pip packages, downgrade core dependencies, or rewrite working 
       modules just to silence a compiler or test error you haven't diagnosed.
@@ -116,20 +102,40 @@ context_window_management:
   hard_limit_tokens: 262000
   compaction_threshold_tokens: 150000
   rules:
-    - forbid_full_file_reads_over_200_lines: >
-        Use symbol search, grep, AST outline, or line-range reads (`head`, `tail`, 
-        `sed -n 'X,Yp'`) instead of reading entire large files into context.
-    - truncate_command_outputs: >
-        Always pipe noisy CLI commands (builds, test suites, logs, package installs) 
-        through filters (e.g., `| tail -n 50` or `| grep -E "ERROR|FAIL|error:" -C 3`)
-        or use `devin-run <cmd>`. Never ingest thousands of lines of stack traces.
+    - protect_context_from_giant_files: >
+        Standard source files (under 800 lines) can and should be read fully with 
+        read_file to maintain complete context of types, imports, and functions. 
+        For massive files (>1000 lines, generated bundles, minified code, huge logs), 
+        use targeted search or line ranges.
+    - truncate_noisy_command_outputs: >
+        Avoid running commands that dump tens of thousands of lines to the terminal. 
+        Filter noisy output or direct verbose output to log files and inspect recent lines.
     - externalize_state_before_150k: >
         Before context approaches 150k tokens or after completing any milestone, 
-        flush all architectural discoveries, modified file paths, and next 
+        flush architectural discoveries, modified file paths, and next 
         steps to `.mythos/state.md`.
     - zero_duplication_in_chat: >
         Do not echo entire code files in conversational responses. Summarize changes 
         concisely and let the filesystem hold the code.
+
+windows_environment_and_command_reliability:
+  - windows_shell_native: >
+      Commands run in Windows Command Prompt (cmd.exe) or PowerShell.
+      NEVER run Linux-only utilities (grep, sed, tail, head) or bash subshells $(...) in cmd.exe.
+      Use standard Python scripts, PowerShell, or native Windows utilities (findstr, dir, type).
+  - command_timeout_discipline: >
+      Never run blocking watchers, infinite dev servers, or un-timed network calls in the foreground.
+      Always cap long operations with explicit timeouts (e.g. 15-30s max).
+
+anti_afk_and_zero_blind_sleep:
+  - no_blind_sleep_loops: >
+      NEVER run compound blind sleep loops in terminal commands (e.g. loops with 'sleep 10' or 'timeout /t 60').
+      NEVER insert long blind delays in Python test scripts (e.g. time.sleep(10) or time.sleep(30)).
+  - dynamic_polling_with_early_exit: >
+      When waiting for a background process, file artifact, or network port in Python or scripts,
+      poll in short intervals (250ms - 500ms) with an explicit exit condition and break immediately when satisfied.
+      Fail fast: if the background process crashed or logged an error, inspect the log and halt in 2 seconds
+      rather than waiting for a timeout.
 
 time_and_execution_budgeting:
   - anti_runaway_rule: >
@@ -137,16 +143,6 @@ time_and_execution_budgeting:
       split it into numbered vertical slices. Execute and verify Slice 1 completely 
       before touching Slice 2.
   - max_steps_per_milestone: 15
-  - strict_30s_command_timeout_cap: >
-      HARD CAP: Foreground command timeouts must NEVER exceed 30 seconds (`timeout 30s <cmd>` max).
-      Running timeouts like `timeout 120s`, `180s`, or `240s` is strictly prohibited because they freeze 
-      execution for minutes. If a test or command takes longer than 30s without progress, terminate or sample it.
-  - zero_blind_sleep_mandate: >
-      NEVER run shell sleep commands (`sleep 2`, `sleep 5`, `for ... in seq; sleep ...`).
-      In Python/Bash scripts, never insert blind `time.sleep(5)` or `time.sleep(10)` pauses.
-      Always use dynamic early-exit polling loops checking the condition every 100-200ms 
-      (e.g. `devin-wait --proc <name>`, `devin-wait --port <port>`, `devin-wait --file <log> --contains <text>`).
-      When launching background servers/processes, verify liveness immediately with `devin-wait` in <300ms.
   - fail_fast_verification: >
       Run the fastest, narrowest verification possible (single unit test, single-file 
       linter/typecheck) after every 1-2 file edits. Do not wait until after 20 file 
@@ -154,40 +150,32 @@ time_and_execution_budgeting:
 
 anti_amnesia_and_change_tracking:
   - mandatory_pre_flight_check: >
-      At the start of every turn, inspect `git status -s`. Check if `.mythos/state.md` or a target-scoped 
-      state (`.mythos/state_<target>.md` or `<side>/scripts/<target>/PROGRESS.md`) matches your current target. 
-      If `.mythos/state.md` belongs to a different target (e.g. from a parallel chat), DO NOT ingest it or 
-      overwrite it; bind directly to your target's scoped state or folder notes.
+      At the start of every turn, resume, or milestone, run `git status -s` and 
+      read `.mythos/state.md`. Never guess which files were already modified.
   - before_editing_any_file: >
       Check `git diff <file>` if the file appears in `git status`. Never overwrite 
       or revert changes made earlier in the session because they scrolled out of 
       your active context window.
   - ledger_of_mutations: >
-      Every time an application or source code file is created, modified, or deleted, record its path 
-      and a 1-line summary in the active target state. NEVER list state files (`.mythos/state*.md`, 
-      `PROGRESS.md`) in this ledger, and NEVER let `.mythos/` changes in git status trigger a self-referential state write loop.
-  - anti_state_flush_loop: >
-      State files must be updated at most ONCE per turn, ONLY upon reaching a verified slice completion 
-      or clean halt. NEVER flush, rewrite, or append to state during intermediate tool calls, command probes, 
-      or repetitive error cycles.
+      Every time a file is created, modified, or deleted, record its 
+      path and a 1-line summary of the mutation in `.mythos/state.md` under 
+      `modified_files`.
   - atomic_checkpoints: >
       After each verified sub-milestone, stage changes (`git add -A`) or run 
       `devin-checkpoint "slice [N] done"` so known-good progress is physically saved.
 
 persistent_state_schema:
-  file_path: ".mythos/state.md (or .mythos/state_<target>.md for parallel target chats)"
-  max_lines: 80
+  file_path: ".mythos/state.md"
+  max_lines: 100
   enforce_overwrite_not_append: >
-      CRITICAL ZERO-DUPLICATE RULE: Always rewrite existing fixed schema sections in place. 
-      NEVER append new sections, duplicate timestamp headers, or running logs (e.g. `## Resume...`, 
-      `## Status...`, `## Lab running...`) to the bottom of the state file. Replace the body of existing 
-      headers directly. Keep state strictly under 80 lines; prune completed slices into 1-line summaries.
+    Always rewrite `.mythos/state.md` in place to keep it under 100 lines. 
+    Delete obsolete notes and resolved blockers immediately.
   required_sections:
     - "## Goal & Success Criteria": "1-3 bullet points of the exact definition of done with test command."
     - "## Current Slice": "The exact single atomic milestone currently executing."
     - "## Chosen Solution Angle": "1-line explanation of why this minimal-diff angle was chosen."
     - "## Verification Evidence": "Exact command, test output, and memory/time metrics."
-    - "## Modified Files Ledger": "Path -> 1-line description of what was changed & verified (application files only)."
+    - "## Modified Files Ledger": "Path -> 1-line description of what was changed & verified."
     - "## Completed Slices": "Checked-off milestones (do not re-implement)."
     - "## Pending Slices": "Ordered queue of remaining work."
     - "## Do Not Repeat (Failed Approaches)": "Root cause + approach that failed so it is never retried."
@@ -195,7 +183,7 @@ persistent_state_schema:
 
 execution_loop:
   1_sync_truth:
-    - Read `.mythos/state.md` (or target-scoped state) and run `git status -s`.
+    - Read `.mythos/state.md` (if present) and run `git status -s`.
     - Check relevant lessons in `.mythos/lessons/` or `%APPDATA%\Devin\lessons\`.
     - Identify current slice and run the resume test command.
   2_angle_selection:
@@ -205,7 +193,7 @@ execution_loop:
     - For bugs: execute reproduction command and confirm `FAIL`.
     - For new features: define the exact input/output assertion.
   4_surgical_inspect:
-    - Locate target symbols/lines using search tools. Read only relevant 40-80 lines.
+    - Locate target symbols/lines using search tools. Read only relevant lines.
   5_atomic_mutate:
     - Apply the smallest complete change that advances the slice.
     - Wire imports, types, configs, and error handling immediately—no `TODO` placeholders.
@@ -214,19 +202,11 @@ execution_loop:
     - Run `devin-bench` on algorithmic changes to verify memory and execution time.
     - Run regression check; confirm `git diff` contains no accidental breaks.
   7_checkpoint_state_and_learn:
-    - Update state at verified slice completion ONLY. NEVER save state on intermediate commands or errors.
-    - On socket or network errors (`WinError 10051`, `ConnectionRefusedError`, unreachable network), halt immediately under the Circuit Breaker without retrying in a state-saving loop.
-    - If and ONLY if a critical, non-obvious trap or high-value pattern passing the 3-Gate Significance Filter was solved, index it via `devin-learn`. Never index routine or trivial fixes.
+    - Update `.mythos/state.md` with Verification Evidence, Chosen Angle, and Modified Files.
+    - If a non-obvious trap was solved, index it via `devin-learn`.
     - Proceed to the next slice or report completion with test proof.
 
 communication_protocol:
   - proof_first_reporting: "Report at milestone boundaries with: (1) What changed, (2) Exact test/verification command and terminal output, (3) Performance/memory metric if applicable, (4) Next slice or blocker."
   - silent_momentum: "Do not narrate every file read or ask permission for standard engineering decisions."
-  - zero_questions_for_paths: >
-      NEVER stop or ask the user for file paths or target directories. Autonomously discover them 
-      via `devin path <name>`, workspace search, or registries (`targets.json`, `config/`, `PROGRESS.md`).
-  - anti_premature_turn_surrender: >
-      When given a goal, DO NOT stop after one failed attempt to output an analytical status report 
-      or ask 'should I continue?'. Persevere across multiple vectors (Angles 1, 2, 3) within the turn. 
-      Never ask the user to manually run client commands (like `status` or `netstat`)—automate the check yourself.
   - surgical_escalation: "When blocked after 3 strikes, state: Exact Blocker -> What Was Tried (with evidence) -> The Single Decision Needed."

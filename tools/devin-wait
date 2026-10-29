@@ -1,2 +1,140 @@
-#!/bin/sh
-cmd.exe /c "devin-wait.bat" "$@"
+#!/usr/bin/env bash
+# Devin Real-Time Streaming Watcher & Dynamic Wait Tool (POSIX / Git Bash / WSL)
+# Replaces 100s blind sleep loops with sub-second polling + live streaming output!
+
+TARGET=""
+FILE=""
+PROC=""
+PORT=""
+TAIL=""
+CONTAINS=""
+TIMEOUT=15
+INTERVAL=0.25
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --file|-f)
+      FILE="$2"; shift 2 ;;
+    --proc|-p)
+      PROC="$2"; shift 2 ;;
+    --port)
+      PORT="$2"; shift 2 ;;
+    --tail|-t)
+      TAIL="$2"; shift 2 ;;
+    --contains|-c)
+      CONTAINS="$2"; shift 2 ;;
+    --timeout)
+      TIMEOUT="$2"; shift 2 ;;
+    *)
+      if [[ -z "$TARGET" ]]; then
+        TARGET="$1"
+      fi
+      shift ;;
+  esac
+done
+
+# If target shorthand
+if [[ -n "$TARGET" && -z "$FILE" && -z "$PROC" && -z "$PORT" ]]; then
+  if [[ "$TARGET" =~ ^[0-9]+$ ]]; then
+    if [[ "$TARGET" -lt 60 && ! -e "$TARGET" ]]; then
+      for ((s=1; s<=$TARGET; s++)); do
+        sleep 1
+        printf "[devin-wait] Elapsed %ds / %ds\n" "$s" "$TARGET"
+      done
+      exit 0
+    else
+      PORT="$TARGET"
+    fi
+  elif [[ "$TARGET" =~ \.(exe|dll|bin)$ ]]; then
+    PROC="$TARGET"
+  else
+    FILE="$TARGET"
+  fi
+fi
+
+# Auto-detect nearby .out / .log file if --tail not specified
+if [[ -z "$TAIL" ]]; then
+  for cand in sniff.out capture.out app.log output.log server.log; do
+    if [[ -f "$cand" ]]; then
+      TAIL="$cand"
+      break
+    fi
+  done
+fi
+
+DESC=""
+[[ -n "$FILE" ]] && DESC="file '$FILE'"
+[[ -n "$PROC" ]] && DESC="process '$PROC'"
+[[ -n "$PORT" ]] && DESC="port '$PORT'"
+[[ -z "$DESC" ]] && DESC="condition"
+
+printf "[devin-wait] Watching for %s (max timeout: %ss, polling every 250ms)...\n" "$DESC" "$TIMEOUT"
+
+START_TIME=$(date +%s)
+LAST_HEARTBEAT=$START_TIME
+LAST_TAIL_LINE=""
+
+while true; do
+  NOW=$(date +%s)
+  ELAPSED=$((NOW - START_TIME))
+
+  # Check condition
+  MET=0
+  if [[ -n "$FILE" ]]; then
+    if [[ -f "$FILE" ]]; then
+      if [[ -n "$CONTAINS" ]]; then
+        if grep -q "$CONTAINS" "$FILE" 2>/dev/null; then
+          MET=1
+        fi
+      else
+        MET=1
+      fi
+    fi
+  elif [[ -n "$PROC" ]]; then
+    if pgrep -f "$PROC" >/dev/null 2>&1 || ps aux 2>/dev/null | grep -v grep | grep -q "$PROC"; then
+      MET=1
+    fi
+  elif [[ -n "$PORT" ]]; then
+    if (echo >/dev/tcp/127.0.0.1/"$PORT") >/dev/null 2>&1; then
+      MET=1
+    fi
+  fi
+
+  if [[ $MET -eq 1 ]]; then
+    printf "[devin-wait] SUCCESS: Condition met in %ds!\n" "$ELAPSED"
+    if [[ -n "$FILE" && -f "$FILE" ]]; then
+      printf "[devin-wait] Preview of %s (first 300 bytes):\n" "$FILE"
+      head -c 300 "$FILE" 2>/dev/null
+      echo ""
+    fi
+    exit 0
+  fi
+
+  # Check timeout
+  if [[ $ELAPSED -ge $TIMEOUT ]]; then
+    printf "\n[devin-wait] TIMEOUT reached after %ds. Condition not met.\n" "$TIMEOUT"
+    if [[ -n "$TAIL" && -f "$TAIL" ]]; then
+      printf "[devin-wait] Latest log output from %s:\n" "$TAIL"
+      tail -n 5 "$TAIL" 2>/dev/null
+    fi
+    exit 1
+  fi
+
+  # Stream live heartbeat & log updates every 2s
+  if [[ $((NOW - LAST_HEARTBEAT)) -ge 2 ]]; then
+    LAST_HEARTBEAT=$NOW
+    if [[ -n "$TAIL" && -f "$TAIL" ]]; then
+      NEW_LINE=$(tail -n 1 "$TAIL" 2>/dev/null)
+      if [[ -n "$NEW_LINE" && "$NEW_LINE" != "$LAST_TAIL_LINE" ]]; then
+        LAST_TAIL_LINE="$NEW_LINE"
+        printf "[devin-wait: %ds] %s >> %s\n" "$ELAPSED" "$TAIL" "$NEW_LINE"
+      else
+        printf "[devin-wait: %ds] still watching for %s...\n" "$ELAPSED" "$DESC"
+      fi
+    else
+      printf "[devin-wait: %ds] still watching for %s...\n" "$ELAPSED" "$DESC"
+    fi
+  fi
+
+  sleep "$INTERVAL"
+done

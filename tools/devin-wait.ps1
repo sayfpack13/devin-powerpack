@@ -1,6 +1,5 @@
-# Devin Dynamic Wait & Polling Tool
-# Replaces slow, blind "sleep X" commands with fast, early-exit condition polling.
-# Exits immediately the millisecond the condition is met!
+# Devin Dynamic Wait & Live Streaming Poller
+# Replaces slow, blind "sleep X" commands with fast, early-exit condition polling and real-time streaming heartbeats.
 
 param(
     [Parameter(Position = 0)]
@@ -13,6 +12,7 @@ param(
     [string]$File,
     [string]$Contains,
     [string]$Cmd,
+    [string]$Tail,
     [double]$Timeout = 15.0,
     [int]$IntervalMs = 250
 )
@@ -20,38 +20,57 @@ param(
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 $timeoutMs = [int]($Timeout * 1000)
 
-# 1. Simple numeric sleep fallback if invoked as "devin-wait 2"
+# Numeric seconds wait fallback with live heartbeat
 if ($Target -match '^\d+(\.\d+)?$' -and -not $Proc -and -not $Port -and -not $File -and -not $Cmd) {
-    Start-Sleep -Seconds ([double]$Target)
-    exit 0
+    $sec = [int]$Target
+    if ($sec -lt 60 -and -not (Test-Path $Target)) {
+        for ($s = 1; $s -le $sec; $s++) {
+            Start-Sleep -Seconds 1
+            Write-Host "[devin-wait] Elapsed ${s}s / ${sec}s" -ForegroundColor Cyan
+        }
+        exit 0
+    }
 }
 
-# If target is provided as a shorthand
+# Shorthand resolution
 if ($Target -and -not $Proc -and -not $Port -and -not $File -and -not $Cmd) {
     if ($Target -match '^\d+$') {
         $Port = [int]$Target
-    } elseif ($Target -match '\.(exe|dll)$') {
+    } elseif ($Target -match '\.(exe|dll|bin)$') {
         $Proc = $Target
-    } elseif (Test-Path $Target -PathType Leaf) {
+    } elseif (Test-Path $Target) {
         $File = $Target
     } else {
-        $Cmd = $Target
+        $File = $Target
     }
 }
 
+# Auto-detect nearby log file if --tail not specified
+if (-not $Tail) {
+    $candidates = @("sniff.out", "capture.out", "app.log", "output.log", "server.log")
+    foreach ($cand in $candidates) {
+        if (Test-Path $cand) {
+            $Tail = $cand
+            break
+        }
+    }
+}
+
+$desc = "condition"
+if ($File) { $desc = "file '$File'" }
+elseif ($Proc) { $desc = "process '$Proc'" }
+elseif ($Port -gt 0) { $desc = "port '$Port'" }
+
+Write-Host "[devin-wait] Watching for $desc (timeout: ${Timeout}s, polling every 250ms)..." -ForegroundColor Cyan
+
 function Test-Condition {
-    # Check 1: Process presence or exit
     if ($Proc) {
         $procName = [System.IO.Path]::GetFileNameWithoutExtension($Proc)
         $running = @(Get-Process -Name $procName -ErrorAction SilentlyContinue).Count -gt 0
-        if ($Exit) {
-            return (-not $running)
-        } else {
-            return $running
-        }
+        if ($Exit) { return (-not $running) }
+        else { return $running }
     }
 
-    # Check 2: TCP Port open
     if ($Port -gt 0) {
         try {
             $tcp = New-Object System.Net.Sockets.TcpClient
@@ -67,28 +86,20 @@ function Test-Condition {
         return $false
     }
 
-    # Check 3: File existence or log pattern
     if ($File) {
-        if (-not (Test-Path $File)) {
-            return $false
-        }
+        if (-not (Test-Path $File)) { return $false }
         if ($Contains) {
             $content = Get-Content -Path $File -Tail 100 -ErrorAction SilentlyContinue
-            if ($content -match [regex]::Escape($Contains)) {
-                return $true
-            }
+            if ($content -match [regex]::Escape($Contains)) { return $true }
             return $false
         }
         return $true
     }
 
-    # Check 4: Arbitrary check command
     if ($Cmd) {
         try {
             $res = Invoke-Expression $Cmd
-            if ($LASTEXITCODE -eq 0 -or $res) {
-                return $true
-            }
+            if ($LASTEXITCODE -eq 0 -or $res) { return $true }
         } catch {}
         return $false
     }
@@ -96,16 +107,43 @@ function Test-Condition {
     return $true
 }
 
-# Polling Loop with Fast Early Exit
+$lastHeartbeat = 0
+$lastTailLine = ""
+
 while ($sw.ElapsedMilliseconds -lt $timeoutMs) {
     if (Test-Condition) {
         $elapsedSec = [math]::Round($sw.Elapsed.TotalSeconds, 2)
-        Write-Host "[devin-wait] Condition met early in ${elapsedSec}s!" -ForegroundColor Green
+        Write-Host "`n[devin-wait] SUCCESS: Condition met in ${elapsedSec}s!" -ForegroundColor Green
+        if ($File -and (Test-Path $File)) {
+            Write-Host "[devin-wait] Preview of $File (first 300 bytes):" -ForegroundColor DarkGray
+            Get-Content -Path $File -TotalCount 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+        }
         exit 0
     }
+
+    $elapsed = [int]($sw.ElapsedMilliseconds / 1000)
+    if ($elapsed -ge ($lastHeartbeat + 2)) {
+        $lastHeartbeat = $elapsed
+        if ($Tail -and (Test-Path $Tail)) {
+            $latest = Get-Content -Path $Tail -Tail 1 -ErrorAction SilentlyContinue
+            if ($latest -and $latest -ne $lastTailLine) {
+                $lastTailLine = $latest
+                Write-Host "[devin-wait: ${elapsed}s] $Tail >> $latest" -ForegroundColor DarkCyan
+            } else {
+                Write-Host "[devin-wait: ${elapsed}s] still watching for $desc..." -ForegroundColor DarkGray
+            }
+        } else {
+            Write-Host "[devin-wait: ${elapsed}s] still watching for $desc..." -ForegroundColor DarkGray
+        }
+    }
+
     Start-Sleep -Milliseconds $IntervalMs
 }
 
 $elapsedSec = [math]::Round($sw.Elapsed.TotalSeconds, 2)
-Write-Host "[devin-wait] Timeout after ${elapsedSec}s (condition not met)." -ForegroundColor Yellow
+Write-Host "`n[devin-wait] TIMEOUT reached after ${elapsedSec}s. Condition not met." -ForegroundColor Yellow
+if ($Tail -and (Test-Path $Tail)) {
+    Write-Host "[devin-wait] Latest log from $Tail:" -ForegroundColor DarkYellow
+    Get-Content -Path $Tail -Tail 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+}
 exit 1
